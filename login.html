@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>밥집 찾기 - 로그인</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-lg">
+<header class="bg-surface-container-lowest w-full top-0 border-b border-primary/30">
+  <div class="flex items-center justify-center px-margin-mobile md:px-margin-desktop h-16 max-w-container-max mx-auto relative">
+    <div class="absolute left-margin-mobile md:left-margin-desktop flex items-center">
+      <span class="material-symbols-outlined text-primary text-[24px]">restaurant</span>
+    </div>
+    <div class="font-headline-md text-headline-md font-bold text-on-surface chromatic-aberration">SYS.INIT_LOGIN</div>
+  </div>
+</header>
+
+<main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+  <div class="w-full max-w-[400px] border border-primary/50 bg-surface-container-lowest/80 p-8 backdrop-blur-sm">
+    <div class="w-24 h-24 bg-surface-container border border-primary flex items-center justify-center mx-auto mb-10 neon-border overflow-hidden">
+      <img src="assets/logo.jpg" alt="W와우W Neon Logo" class="w-full h-full object-contain">
+    </div>
+
+    <div class="flex mb-8 border border-primary/50">
+      <button id="tab-login" type="button" class="flex-1 py-3 font-label-caps text-label-caps uppercase tracking-widest transition-colors" aria-pressed="true">&gt; LOGIN</button>
+      <button id="tab-register" type="button" class="flex-1 py-3 font-label-caps text-label-caps uppercase tracking-widest transition-colors border-l border-primary/50" aria-pressed="false">&gt; REGISTER</button>
+    </div>
+
+    <form id="login-form" class="flex flex-col">
+      <div class="mb-6">
+        <label class="block font-label-caps text-label-caps text-primary mb-2" for="email">// EMAIL</label>
+        <input class="w-full bg-surface-container-low border border-primary/50 px-4 py-3 font-body-lg text-body-lg text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:ring-0 transition-all neon-border" id="email" placeholder="ENTER_EMAIL" type="email" required>
+      </div>
+      <div class="mb-2">
+        <label class="block font-label-caps text-label-caps text-primary mb-2" for="password">// PASSWORD</label>
+        <input class="w-full bg-surface-container-low border border-primary/50 px-4 py-3 font-body-lg text-body-lg text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:ring-0 transition-all neon-border" id="password" placeholder="ENTER_PASSWORD" type="password" required>
+      </div>
+      <div id="confirm-password-wrapper" class="hidden mb-2 mt-4">
+        <label class="block font-label-caps text-label-caps text-primary mb-2" for="confirm-password">// CONFIRM_PASSWORD</label>
+        <input class="w-full bg-surface-container-low border border-primary/50 px-4 py-3 font-body-lg text-body-lg text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:ring-0 transition-all neon-border" id="confirm-password" placeholder="RE_ENTER_PASSWORD" type="password">
+      </div>
+
+      <p id="login-error" class="hidden font-code-md text-code-md text-error mb-4 mt-4"></p>
+      <p id="login-info" class="hidden font-code-md text-code-md text-primary mb-4 mt-4"></p>
+
+      <div id="reset-account-row" class="flex justify-end mb-8">
+        <button id="reset-account-btn" type="button" class="font-body-sm text-body-sm text-secondary underline hover:text-primary transition-colors">RESET_ACCOUNT</button>
+      </div>
+
+      <button id="submit-btn" class="w-full bg-primary text-on-primary-container font-label-caps text-label-caps py-4 hover:bg-primary-fixed-dim transition-colors uppercase tracking-widest shadow-[0_0_15px_rgba(0,240,255,0.4)]" type="submit">
+        &gt; EXECUTE_LOGIN
+      </button>
+    </form>
+
+    <div class="flex items-center my-8">
+      <div class="flex-grow border-t border-primary/30"></div>
+      <span class="px-4 font-label-caps text-label-caps text-primary bg-transparent">OR</span>
+      <div class="flex-grow border-t border-primary/30"></div>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <button class="w-full flex items-center justify-center border border-secondary/50 bg-transparent text-secondary py-3 hover:bg-secondary/10 transition-colors uppercase tracking-widest" type="button" disabled title="데모용 로컬 계정에서는 지원하지 않습니다">
+        <span class="material-symbols-outlined mr-2 text-[20px]">language</span>
+        <span class="font-label-caps text-label-caps">Google_AUTH</span>
+      </button>
+      <button class="w-full flex items-center justify-center border border-secondary/50 bg-transparent text-secondary py-3 hover:bg-secondary/10 transition-colors uppercase tracking-widest" type="button" disabled title="데모용 로컬 계정에서는 지원하지 않습니다">
+        <span class="material-symbols-outlined mr-2 text-[20px]">devices</span>
+        <span class="font-label-caps text-label-caps">Apple_AUTH</span>
+      </button>
+    </div>
+
+    <div id="mode-hint" class="mt-10 text-center font-body-sm text-body-sm text-on-surface/70">
+      계정이 없으신가요? 상단 REGISTER 탭에서 새 계정을 생성하세요. (로컬 저장 전용 · 실제 서버 인증 아님)
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { attemptLogin, attemptRegister, isLoggedIn, resetAccount, MIN_PASSWORD_LENGTH } from './auth.js';
+
+  if (isLoggedIn()) {
+    window.location.href = 'index.html';
+  }
+
+  const form = document.getElementById('login-form');
+  const errorEl = document.getElementById('login-error');
+  const infoEl = document.getElementById('login-info');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirm-password');
+  const confirmWrapper = document.getElementById('confirm-password-wrapper');
+  const submitBtn = document.getElementById('submit-btn');
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const modeHint = document.getElementById('mode-hint');
+
+  let mode = 'login';
+
+  function applyMode() {
+    const isRegister = mode === 'register';
+
+    tabLogin.setAttribute('aria-pressed', String(!isRegister));
+    tabRegister.setAttribute('aria-pressed', String(isRegister));
+    tabLogin.classList.toggle('bg-primary', !isRegister);
+    tabLogin.classList.toggle('text-on-primary-container', !isRegister);
+    tabLogin.classList.toggle('text-primary', isRegister);
+    tabRegister.classList.toggle('bg-primary', isRegister);
+    tabRegister.classList.toggle('text-on-primary-container', isRegister);
+    tabRegister.classList.toggle('text-primary', !isRegister);
+
+    confirmWrapper.classList.toggle('hidden', !isRegister);
+    confirmInput.required = isRegister;
+
+    submitBtn.textContent = isRegister ? '> EXECUTE_REGISTER' : '> EXECUTE_LOGIN';
+    passwordInput.placeholder = isRegister ? `MIN_${MIN_PASSWORD_LENGTH}_CHARS` : 'ENTER_PASSWORD';
+    modeHint.textContent = isRegister
+      ? '이미 계정이 있다면 LOGIN 탭을 이용하세요. (로컬 1계정 모델 · 실제 서버 인증 아님)'
+      : '계정이 없으신가요? 상단 REGISTER 탭에서 새 계정을 생성하세요. (로컬 저장 전용 · 실제 서버 인증 아님)';
+
+    errorEl.classList.add('hidden');
+    infoEl.classList.add('hidden');
+  }
+
+  tabLogin.addEventListener('click', () => { mode = 'login'; applyMode(); });
+  tabRegister.addEventListener('click', () => { mode = 'register'; applyMode(); });
+  applyMode();
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('logged_out') === '1') {
+    infoEl.textContent = '> LOGOUT_OK — 세션이 종료되었습니다.';
+    infoEl.classList.remove('hidden');
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    errorEl.classList.add('hidden');
+    infoEl.classList.add('hidden');
+
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const result = mode === 'register'
+      ? attemptRegister(email, password, confirmInput.value)
+      : attemptLogin(email, password);
+
+    if (result.ok) {
+      window.location.href = 'index.html';
+      return;
+    }
+    errorEl.textContent = result.error;
+    errorEl.classList.remove('hidden');
+
+    if (mode === 'login' && result.noAccount) {
+      mode = 'register';
+      applyMode();
+      errorEl.textContent = result.error;
+      errorEl.classList.remove('hidden');
+    }
+  });
+
+  document.getElementById('reset-account-btn').addEventListener('click', () => {
+    resetAccount();
+    infoEl.textContent = '> ACCOUNT_RESET_OK — REGISTER 탭에서 새 계정을 생성하세요.';
+    infoEl.classList.remove('hidden');
+    errorEl.classList.add('hidden');
+  });
+</script>
+</body>
+</html>
