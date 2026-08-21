@@ -25,10 +25,11 @@ export function renderMessageState(container, message) {
 }
 
 // onRetry() / onUseMock()는 각각 재시도, 예시 데이터 보기 버튼 클릭 시 호출.
-export function renderErrorState(container, { isConfigMissing, onRetry, onUseMock }) {
-  const hint = isConfigMissing
+// hint를 직접 넘기면(예: 위치 권한 거부, 카카오 키 미설정) isConfigMissing 기반 기본 문구 대신 그 문구를 쓴다.
+export function renderErrorState(container, { isConfigMissing, hint: hintOverride, onRetry, onUseMock }) {
+  const hint = hintOverride || (isConfigMissing
     ? 'config.js에 KCISA_SERVICE_KEY / KCISA_SERVICE_PATH가 아직 설정되지 않았습니다.'
-    : '정보를 불러오지 못했어요. CORS 차단이거나 API 오류일 수 있습니다.';
+    : '정보를 불러오지 못했어요. CORS 차단이거나 API 오류일 수 있습니다.');
   container.innerHTML = `<div class="col-span-full border border-error/60 bg-surface-container-lowest p-8 text-center space-y-4">
     <p class="font-code-md text-code-md text-error">&gt; FETCH_FAILED</p>
     <p class="font-body-md text-body-md text-on-surface">${escapeHtml(hint)}</p>
@@ -39,4 +40,13 @@ export function renderErrorState(container, { isConfigMissing, onRetry, onUseMoc
   </div>`;
   container.querySelector('#retry-btn').addEventListener('click', onRetry);
   container.querySelector('#use-mock-btn').addEventListener('click', onUseMock);
+}
+
+// 로그인해야 쓸 수 있는 기능(맛집 담기 등)의 자리에 표시 — onLogin()은 로그인 버튼 클릭 시 호출.
+export function renderLoginRequiredState(container, { message = '로그인 후 이용할 수 있는 기능입니다.', onLogin }) {
+  container.innerHTML = `<div class="col-span-full border border-dashed border-primary/50 p-10 text-center space-y-4">
+    <p class="font-code-md text-code-md text-outline">${escapeHtml(message)}</p>
+    <button id="login-required-btn" type="button" class="px-4 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high">&gt; 로그인</button>
+  </div>`;
+  container.querySelector('#login-required-btn').addEventListener('click', onLogin);
 }

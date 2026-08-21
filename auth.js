@@ -1,144 +1,105 @@
-// localStorage 기반 로컬 1계정 "인증" — 실제 서버 인증이 아님(PRD "서버·계정 없음" 원칙에 맞춰
-// 진짜 백엔드 없이, 개인용 로컬 도구 편의를 위한 클라이언트 저장소 흉내).
+// Supabase Auth 기반 로그인/회원가입/세션 관리.
+// 비밀번호 저장·검증·세션 유지(새로고침 포함)는 전부 Supabase가 처리한다 — 여기서는
+// (1) UI에 보여줄 한국어 에러 메시지로 변환하고 (2) "지금 로그인한 사람이 누구인지"를
+// 다른 기능(맛집 담기 등)이 가져다 쓰기 좋은 형태로 노출하는 역할만 한다.
 
-const ACCOUNT_KEY = 'bapjip_account';
-const SESSION_KEY = 'bapjip_session';
+import { supabase } from './supabaseClient.js';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const MIN_PASSWORD_LENGTH = 6;
+export { supabase };
 
-// 테스트용 마스터 키 — 비밀번호 칸에 이 문자열을 입력하면 이메일 값과 무관하게 즉시 로그인된다.
-// 소스에 그대로 노출되는 값이라 진짜 비밀이 아님(로컬 개인용 도구라 배포 대상 아님을 전제).
-const MASTER_KEY = 'bapjip-master';
+function translateAuthError(error) {
+  const msg = error?.message || '';
 
-function readJSON(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
+  if (/already registered|already exists|user already/i.test(msg)) {
+    return '이미 가입된 이메일입니다. 로그인을 이용해 주세요.';
   }
-}
-
-function writeJSON(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
+  if (/invalid login credentials/i.test(msg)) {
+    return '이메일 또는 비밀번호가 올바르지 않습니다.';
   }
-}
-
-function removeKey(key) {
-  try {
-    localStorage.removeItem(key);
-    return true;
-  } catch {
-    return false;
+  if (/email not confirmed/i.test(msg)) {
+    return '이메일 인증이 완료되지 않았습니다. 관리자에게 문의해 주세요.';
   }
+  if (/password.*(least|short|characters|weak)/i.test(msg) || /weak password/i.test(msg)) {
+    return '비밀번호가 너무 짧거나 약합니다. 6자 이상으로 입력해 주세요.';
+  }
+  if (/rate limit/i.test(msg)) {
+    return '요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  if (/invalid email|unable to validate email/i.test(msg)) {
+    return '올바른 이메일 형식이 아닙니다.';
+  }
+  if (/network|fetch/i.test(msg)) {
+    return '네트워크 오류로 요청에 실패했습니다. 연결을 확인해 주세요.';
+  }
+  return msg ? `오류가 발생했습니다: ${msg}` : '알 수 없는 오류가 발생했습니다.';
 }
 
-export function getAccount() {
-  return readJSON(ACCOUNT_KEY);
-}
-
-export function getSession() {
-  return readJSON(SESSION_KEY);
-}
-
-export function isLoggedIn() {
-  return !!getSession();
-}
-
-export function validateEmail(email) {
-  return EMAIL_RE.test((email || '').trim());
-}
-
-export function validatePassword(password) {
-  return !!password && password.length >= MIN_PASSWORD_LENGTH;
-}
-
-// 명시적 회원가입 — 계정이 이미 있으면 실패(로컬 1계정 모델), 형식 검증 후 신규 생성.
-export function attemptRegister(email, password, confirmPassword) {
+// 회원가입 — 성공 시 바로 로그인 상태가 된다(이메일 인증 대기 없음).
+// Supabase 프로젝트의 Authentication 설정에서 "Confirm email"이 꺼져 있어야
+// signUp이 세션을 즉시 내려준다. 켜져 있는 경우를 대비해, 세션이 없으면 같은 자격증명으로
+// 로그인을 한 번 더 시도한다.
+export async function signUp(email, password) {
   const trimmedEmail = (email || '').trim();
-
   if (!trimmedEmail || !password) {
-    return { ok: false, error: '> REGISTER_FAILED: EMAIL/PASSWORD REQUIRED' };
-  }
-  if (!validateEmail(trimmedEmail)) {
-    return { ok: false, error: '> REGISTER_FAILED: INVALID_EMAIL_FORMAT' };
-  }
-  if (!validatePassword(password)) {
-    return { ok: false, error: `> REGISTER_FAILED: PASSWORD_TOO_SHORT (MIN ${MIN_PASSWORD_LENGTH} CHARS)` };
-  }
-  if (password !== confirmPassword) {
-    return { ok: false, error: '> REGISTER_FAILED: PASSWORD_CONFIRM_MISMATCH' };
-  }
-  if (getAccount()) {
-    return { ok: false, error: '> REGISTER_FAILED: ACCOUNT_ALREADY_EXISTS — 로그인하거나 RESET_ACCOUNT를 사용하세요' };
+    return { ok: false, error: '이메일과 비밀번호를 모두 입력해 주세요.' };
   }
 
-  if (!writeJSON(ACCOUNT_KEY, { email: trimmedEmail, password })) {
-    return { ok: false, error: '> REGISTER_FAILED: STORAGE_WRITE_ERROR' };
-  }
-  if (!writeJSON(SESSION_KEY, { email: trimmedEmail, loggedInAt: Date.now() })) {
-    return { ok: false, error: '> REGISTER_FAILED: SESSION_WRITE_ERROR' };
+  const { data, error } = await supabase.auth.signUp({ email: trimmedEmail, password });
+  if (error) {
+    return { ok: false, error: translateAuthError(error) };
   }
 
-  return { ok: true, created: true };
+  if (data.session) {
+    return { ok: true };
+  }
+
+  const signInResult = await signIn(trimmedEmail, password);
+  if (signInResult.ok) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    error: '가입은 완료되었지만 이메일 인증이 필요합니다. 관리자에게 문의해 주세요.',
+  };
 }
 
-// 로그인 — 계정이 없으면 실패(회원가입 유도), 있으면 email+password를 비교한다.
-export function attemptLogin(email, password) {
+export async function signIn(email, password) {
   const trimmedEmail = (email || '').trim();
-
-  if (password === MASTER_KEY) {
-    if (!writeJSON(SESSION_KEY, { email: trimmedEmail || 'MASTER', loggedInAt: Date.now(), master: true })) {
-      return { ok: false, error: '> AUTH_FAILED: SESSION_WRITE_ERROR' };
-    }
-    return { ok: true, master: true };
-  }
-
   if (!trimmedEmail || !password) {
-    return { ok: false, error: '> AUTH_FAILED: EMAIL/PASSWORD REQUIRED' };
-  }
-  if (!validateEmail(trimmedEmail)) {
-    return { ok: false, error: '> AUTH_FAILED: INVALID_EMAIL_FORMAT' };
+    return { ok: false, error: '이메일과 비밀번호를 모두 입력해 주세요.' };
   }
 
-  const account = getAccount();
-  if (!account) {
-    return { ok: false, error: '> AUTH_FAILED: NO_ACCOUNT_FOUND — 먼저 회원가입하세요', noAccount: true };
+  const { error } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
+  if (error) {
+    return { ok: false, error: translateAuthError(error) };
   }
-
-  if (account.email === trimmedEmail && account.password === password) {
-    if (!writeJSON(SESSION_KEY, { email: trimmedEmail, loggedInAt: Date.now() })) {
-      return { ok: false, error: '> AUTH_FAILED: SESSION_WRITE_ERROR' };
-    }
-    return { ok: true, created: false };
-  }
-
-  return { ok: false, error: '> AUTH_FAILED: EMAIL/PASSWORD MISMATCH' };
+  return { ok: true };
 }
 
-export function resetAccount() {
-  removeKey(ACCOUNT_KEY);
-  removeKey(SESSION_KEY);
+export async function signOut() {
+  await supabase.auth.signOut();
 }
 
-// index.html의 로그아웃 버튼에 그대로 이벤트 핸들러로 연결되므로(인자로 클릭 이벤트가 들어올 수 있음)
-// 별도 인자를 받지 않는다. login.html은 쿼리스트링으로 로그아웃 완료 여부를 확인한다.
-export function logout() {
-  try {
-    removeKey(SESSION_KEY);
-  } finally {
-    window.location.href = 'login.html?logged_out=1';
-  }
+// 다른 기능이 "지금 로그인한 사람이 누구인지" 확인할 때 쓰는 단일 진입점.
+// 로그인 안 되어 있으면 null. (예: 맛집 담기 기능에서 로그인 여부를 이걸로 판단하면 됨)
+export async function getCurrentUser() {
+  const { data } = await supabase.auth.getUser();
+  return data.user || null;
 }
 
-// index.html 최상단에서 호출 — 세션 없으면 즉시 로그인 화면으로 리다이렉트(콘텐츠 플래시 방지).
-export function requireSession() {
-  if (!isLoggedIn()) {
-    window.location.href = 'login.html';
-  }
+// 화면에 표시할 이름 — 별도 닉네임 입력을 받지 않으므로 이메일 앞부분을 사용.
+export function getDisplayName(user) {
+  if (!user) return '';
+  return user.user_metadata?.display_name || (user.email || '').split('@')[0];
+}
+
+// 로그인/로그아웃/토큰 갱신 등 인증 상태 변화를 구독한다. 구독 즉시 현재 세션 기준으로도
+// 한 번 호출되므로(Supabase 기본 동작), 새로고침 후 로그인 상태 복원도 이걸로 처리된다.
+// 반환값은 supabase가 주는 subscription 객체 — 필요하면 .unsubscribe()로 해제.
+export function onAuthStateChange(callback) {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user || null);
+  });
+  return data.subscription;
 }

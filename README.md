@@ -4,8 +4,9 @@
 
 ## 주요 기능
 
-- **로그인/회원가입**: `localStorage` 기반 간이 계정 시스템 (`auth.js`)
-- **지역/카테고리 검색**: 서울 시군구 선택 + 업종 카테고리 필터로 맛집 목록 조회 (MENU 탭)
+- **로그인/회원가입**: Supabase Auth 기반 이메일/비밀번호 로그인 (`auth.js`, `supabaseClient.js`). 헤더 우측 모달로 동작하며, 로그인하지 않아도 조회 기능은 그대로 사용 가능
+- **내 주변(위치 기반) 검색**: 카카오 로컬 API로 현재 위치 반경의 실제 음식점을 거리순으로 조회 (MENU 탭 기본 모드, `nearbyApi.js`)
+- **지역/카테고리 검색**: 서울 시군구 선택 + 업종 카테고리 필터로 맛집 목록 조회 (MENU 탭, "지역 선택" 모드)
 - **맛집 담기 (CART 탭)**: 키워드/카테고리로 검색해 카드 형태로 결과를 보고, 원하는 곳을 북마크에 저장
 - **상세 정보 모달**: 카드를 클릭하면 주소/전화 등 상세 정보 확인
 - **네온 디자인 시스템**: 시안/마젠타 톤의 발광 효과(`.neon-border`, `.neon-glow-*`, `.neon-text` 등)로 통일된 사이버펑크 톤 유지, `prefers-reduced-motion` 대응
@@ -27,32 +28,48 @@ python -m http.server 5501
 # 또는 VS Code Live Server 확장 (.vscode/settings.json에 포트 5501로 설정됨)
 ```
 
-브라우저에서 `http://localhost:5501/login.html` 접속.
+브라우저에서 `http://localhost:5501/index.html` 접속.
 
 ### 로그인
 
-- 이메일/비밀번호로 회원가입 후 로그인
-- **테스트용 마스터 키**: 비밀번호 칸에 `bapjip-master` 입력 시 이메일과 무관하게 즉시 로그인 (개인 로컬 도구 전용, 배포 대상 아님)
+- 헤더 우측 "로그인" 버튼 → 모달에서 이메일/비밀번호로 로그인 또는 회원가입
+- 회원가입은 이메일 인증 대기 없이 바로 로그인 상태가 됨 (Supabase 프로젝트의 Authentication → Providers → Email → "Confirm email" 설정이 꺼져 있어야 함)
+- 로그인하지 않아도 MENU/CART 탭 조회는 그대로 사용 가능. 로그인은 향후 "로그인한 사용자만 맛집 담기 허용" 기능을 위한 준비 단계(`getCurrentUser()`/`onAuthStateChange()`를 재사용)
 
 ## API 설정
 
-`config.js`에 KCISA 오픈API 서비스키와 요청 경로를 입력하면 실 데이터를 조회합니다. 값이 비어 있으면 자동으로 `mockData.js`의 목업 데이터를 사용합니다.
+실제 키는 git에 커밋되지 않는 `secrets.local.js`에 넣습니다. 처음 클론했다면:
+
+```bash
+# macOS/Linux
+cp secrets.local.example.js secrets.local.js
+# Windows
+copy secrets.local.example.js secrets.local.js
+```
+
+그 후 `secrets.local.js`를 열어 값을 채웁니다.
+
+- `KAKAO_JS_KEY` — [카카오 개발자센터](https://developers.kakao.com/)에서 앱 등록 후 JavaScript 키 발급. 플랫폼 설정에 로컬 서버 주소(예: `http://localhost:5501`)를 Web 플랫폼으로 등록해야 합니다. "내 주변" 위치 기반 검색에 사용됩니다.
+- `KCISA_SERVICE_KEY` — 문화공공데이터광장 오픈API 서비스키. 비워 두면 자동으로 `mockData.js`의 목업 데이터를 사용합니다. 요청 경로 등 나머지 설정은 `config.js`에서 관리합니다.
 
 ## 프로젝트 구조
 
 ```
-index.html          메인 화면 (MENU / CART 탭)
-login.html           로그인/회원가입 화면
-app.js               메인 화면 오케스트레이션/상태 관리
-auth.js              localStorage 기반 인증
-bookmarks.js         맛집 담기(북마크) 저장소
-api.js               KCISA API 연동
-mockData.js          목업 데이터
-categoryMap.js       카테고리 정규화/표시 매핑
-regions.json         서울 시군구 목록
-config.js            API 키/필드 매핑 설정 (사용자가 채워 넣는 파일)
-theme.js             Tailwind 디자인 토큰 + 네온 색상 CSS 변수 동기화
-styles.css           네온 발광 유틸리티 등 공용 스타일
-components/ui/       화면 컴포넌트 (RegionSelect, CategoryChip, RestaurantCard, DetailModal, BottomNav, StatusView)
-mealgifgma_prd0820.md  제품 요구사항 문서(PRD)
+index.html                  메인 화면 (MENU / CART 탭) — 로그인 모달도 여기서 마운트
+app.js                      메인 화면 오케스트레이션/상태 관리
+auth.js                     Supabase Auth 연동 (로그인/회원가입/로그아웃/현재 사용자 조회)
+supabaseClient.js           Supabase 클라이언트 싱글턴
+bookmarks.js                맛집 담기(북마크) 저장소
+api.js                      KCISA API 연동 (지역 선택 모드)
+nearbyApi.js                카카오 로컬 API 연동 (내 주변 위치 기반 모드)
+mockData.js                 목업 데이터
+categoryMap.js               카테고리 정규화/표시 매핑
+regions.json                 서울 시군구 목록
+config.js                    비-비밀 설정 + secrets.local.js 재수출
+secrets.local.example.js     API 키 템플릿 (커밋됨)
+secrets.local.js             실제 API 키 (.gitignore 대상, 커밋 안 됨)
+theme.js                     Tailwind 디자인 토큰 + 네온 색상 CSS 변수 동기화
+styles.css                   네온 발광 유틸리티 등 공용 스타일
+components/ui/               화면 컴포넌트 (RegionSelect, CategoryChip, RestaurantCard, DetailModal, BottomNav, StatusView, AuthModal, AuthWidget)
+mealgifgma_prd0820.md       제품 요구사항 문서(PRD)
 ```

@@ -16,9 +16,7 @@
   <div class="max-w-container-max mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16">
     <span class="material-symbols-outlined text-primary">terminal</span>
     <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-widest uppercase chromatic-aberration">&gt; FOOD_TERM_v1.0</h1>
-    <button id="logout-btn" aria-label="Logout" class="text-primary hover:bg-surface-container-high hover:text-primary-fixed transition-all duration-150 active:scale-95">
-      <span class="material-symbols-outlined">logout</span>
-    </button>
+    <div id="auth-widget-root" class="flex items-center"></div>
   </div>
 </header>
 
@@ -35,8 +33,30 @@
       </div>
     </div>
 
+    <!-- 검색 모드 토글: 내 주변(위치 기반, 기본) / 지역 선택 -->
+    <div class="mb-6 flex gap-2">
+      <button id="mode-nearby-btn" type="button" data-mode="nearby"
+        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">near_me</span>&gt; 내 주변
+      </button>
+      <button id="mode-region-btn" type="button" data-mode="region"
+        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">map</span>&gt; 지역 선택
+      </button>
+      <button id="mode-saved-btn" type="button" data-mode="saved"
+        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">bookmark</span>&gt; 담은 맛집
+      </button>
+    </div>
+
+    <!-- 내 주변 모드: 위치 상태 안내 + 재시도 -->
+    <div id="nearby-status-root" class="mb-6 hidden flex items-center justify-between gap-4 border border-outline-variant px-4 py-3">
+      <p id="nearby-status-text" class="font-code-md text-code-md text-outline">// 내 위치 확인 중...</p>
+      <button id="nearby-retry-btn" type="button" class="px-3 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high flex-shrink-0">&gt; 다시 찾기</button>
+    </div>
+
     <!-- 시군구 셀렉트 (RegionSelect 컴포넌트가 마운트) — 지역은 서울로 고정, 시도 선택 UI 없음 -->
-    <div id="region-select-root"></div>
+    <div id="region-select-root" class="hidden"></div>
 
     <!-- 카테고리 칩 -->
     <div id="category-chips" class="mb-6 -mx-margin-mobile px-margin-mobile overflow-x-auto hide-scrollbar flex space-x-2 pb-2"></div>
@@ -101,6 +121,9 @@
 
 <!-- 상세 모달 (DetailModal 컴포넌트가 마운트) — PRD §6.2 -->
 <div id="detail-modal-root"></div>
+
+<!-- 로그인/회원가입 모달 (AuthModal 컴포넌트가 마운트) -->
+<div id="auth-modal-root"></div>
 
 <script type="module" src="app.js"></script>
 </body>

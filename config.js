@@ -3,9 +3,14 @@
 //   openApiId=75493ae2-825d-49fb-893a-e2825d19fb9a (id=603) / API_CNV_063
 // PRD §4.5 / §11 기준으로 아직 미확정인 값은 TODO로 표시되어 있습니다.
 
-// ⚠️ 여기에 발급받은 서비스키를 붙여넣으세요 (URL-encoded 상태 그대로 넣어도 되고,
-//    아래 buildRequestUrl()에서 encodeURIComponent를 적용하니 원문 키를 넣어도 됩니다).
-export const KCISA_SERVICE_KEY = '';
+// 실제 서비스키/앱키는 이 파일이 아니라 secrets.local.js(.gitignore 대상)에 넣습니다.
+// 처음 클론했다면 secrets.local.example.js를 secrets.local.js로 복사한 뒤 값을 채워주세요.
+export { KCISA_SERVICE_KEY, KAKAO_JS_KEY, KAKAO_REST_API_KEY } from './secrets.local.js';
+
+// Supabase 프로젝트 URL + publishable(anon) key — 클라이언트에 노출되는 것이 정상인 공개 키라
+// secrets.local.js가 아니라 여기(커밋되는 파일)에 둔다.
+export const SUPABASE_URL = 'https://lkbdhcblujmxveaikwci.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RFYX71rT6mMrztKPC25iZA_5-STPONd';
 
 export const KCISA_BASE_URL = 'https://api.kcisa.kr/openapi/service/rest';
 

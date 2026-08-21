@@ -26,6 +26,7 @@ export function createDetailModal() {
       { label: 'CATEGORY', value: restaurant.category },
       { label: 'ADDR', value: restaurant.roadAddress || restaurant.jibunAddress },
       { label: 'TEL', value: restaurant.tel },
+      { label: 'DISTANCE', value: restaurant.distance ? `${restaurant.distance}m` : '' },
     ].filter((row) => row.value);
 
     body.innerHTML = `
