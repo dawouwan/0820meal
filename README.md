@@ -52,6 +52,18 @@ copy secrets.local.example.js secrets.local.js
 - `KAKAO_JS_KEY` — [카카오 개발자센터](https://developers.kakao.com/)에서 앱 등록 후 JavaScript 키 발급. 플랫폼 설정에 로컬 서버 주소(예: `http://localhost:5501`)를 Web 플랫폼으로 등록해야 합니다. "내 주변" 위치 기반 검색에 사용됩니다.
 - `KCISA_SERVICE_KEY` — 문화공공데이터광장 오픈API 서비스키. 비워 두면 자동으로 `mockData.js`의 목업 데이터를 사용합니다. 요청 경로 등 나머지 설정은 `config.js`에서 관리합니다.
 
+### 배포(Vercel)에서 카카오/KCISA 키 쓰기
+
+`secrets.local.js`는 `.gitignore` 대상이라 배포 저장소에는 존재하지 않습니다. `config.js`가 이 파일을 정적 import로 가져오는 구조라 그대로 두면 배포본에서 이 파일이 404가 되면서 **앱 전체(app.js)가 실행되지 않습니다.**
+
+그래서 Vercel 빌드 시 `scripts/generate-secrets.js`(→ `package.json`의 `build` 스크립트)가 아래 3개 환경 변수로부터 `secrets.local.js`를 자동 생성합니다. Vercel 프로젝트 설정 → Environment Variables에 다음을 등록하세요 (이름은 `secrets.local.js`의 export 이름과 동일하게):
+
+- `KAKAO_JS_KEY`
+- `KAKAO_REST_API_KEY`
+- `KCISA_SERVICE_KEY`
+
+로컬 개발에는 영향 없습니다 — 이 스크립트는 `secrets.local.js`가 이미 있으면 아무 것도 하지 않고 건너뜁니다(로컬은 항상 직접 채운 파일을 그대로 사용).
+
 ### 구글 리뷰 API 키 (서버 전용, 별도 파일)
 
 구글 리뷰 조회(`api/reviews.js`)는 위 3개와 달리 **브라우저에 노출되면 안 되는 서버 전용 키**라 `secrets.local.js`가 아니라 환경 변수로 따로 관리합니다.
@@ -84,6 +96,9 @@ regions.json                 서울 시군구 목록
 config.js                    비-비밀 설정 + secrets.local.js 재수출
 secrets.local.example.js     API 키 템플릿 (커밋됨)
 secrets.local.js             실제 API 키 (.gitignore 대상, 커밋 안 됨)
+scripts/generate-secrets.js  Vercel 빌드 시 secrets.local.js를 환경 변수로부터 생성
+package.json                 build 스크립트(위 파일 실행)만 정의, 의존성 없음
+vercel.json                  buildCommand/outputDirectory 설정
 .env.local.example           구글 리뷰용 서버 전용 키 템플릿 (커밋됨)
 .env.local                   실제 GOOGLE_PLACES_API_KEY (.gitignore 대상, 커밋 안 됨)
 api/reviews.js                구글 리뷰 조회 서버리스 함수 (Places API New 프록시)

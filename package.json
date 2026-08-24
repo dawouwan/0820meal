@@ -1,0 +1,7 @@
+{
+  "name": "0820meal",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/generate-secrets.js"
+  }
+}
