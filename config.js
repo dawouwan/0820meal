@@ -4,12 +4,9 @@
 // PRD §4.5 / §11 기준으로 아직 미확정인 값은 TODO로 표시되어 있습니다.
 
 // 실제 서비스키/앱키는 오직 .env.local(.gitignore 대상, 이 저장소에서 API 키를 두는 유일한 곳)에
-// 넣습니다. "npm run build"(scripts/generate-secrets.js)가 .env.local(로컬) 또는 Vercel
-// Environment Variables(배포)를 읽어 secrets.generated.js를 만듭니다 — 이 파일은 순수 빌드
-// 산출물이라 손으로 만들거나 채우지 않습니다(값을 바꿨다면 .env.local을 고치고 다시 빌드하세요).
-// KCISA_SERVICE_KEY는 여기 없습니다 — 브라우저 번들에 절대 넣지 않고 api/kcisa.js 서버리스
-// 함수 안에서만 process.env로 읽습니다(GOOGLE_PLACES_API_KEY/GEMINI_API_KEY와 동일한 취급).
-export { KAKAO_JS_KEY, KAKAO_REST_API_KEY } from './secrets.generated.js';
+// 넣습니다 — GOOGLE_PLACES_API_KEY/GEMINI_API_KEY/KCISA_SERVICE_KEY/KAKAO_REST_API_KEY 전부
+// 브라우저 번들에는 절대 들어가지 않고, api/*.js 서버리스 함수 안에서만 process.env로 읽습니다.
+// 그래서 이 파일(config.js)에는 더 이상 재수출할 비밀 키가 없습니다.
 
 // Supabase 프로젝트 URL + publishable(anon) key — 클라이언트에 노출되는 것이 정상인 공개 키라
 // .env.local이 아니라 여기(커밋되는 파일)에 둔다.

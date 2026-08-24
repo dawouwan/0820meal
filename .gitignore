@@ -1,4 +1,3 @@
-secrets.generated.js
 .env*
 .vercel
 node_modules

@@ -1,6 +1,6 @@
 // Vercel 서버리스 함수 — 문화공공데이터광장(KCISA) 오픈API를 서버 사이드에서만 호출한다.
-// KCISA_SERVICE_KEY는 더 이상 브라우저 번들(secrets.generated.js)에 넣지 않고 이 함수 안에서만
-// process.env로 읽는다. 클라이언트(api.js)는 path/numOfRows/pageNo 및 지역 필터 파라미터를
+// KCISA_SERVICE_KEY는 브라우저로 절대 내려가지 않고 이 함수 안에서만 process.env로 읽는다.
+// 클라이언트(api.js)는 path/numOfRows/pageNo 및 지역 필터 파라미터를
 // 쿼리스트링으로 넘기고, 이 함수가 serviceKey를 붙여 KCISA를 호출한 뒤 원본 JSON을 그대로
 // 돌려준다 — 파싱/캐싱(extractItemArray, mapRawRecord, localStorage 등)은 기존처럼 api.js에 남는다.
 
