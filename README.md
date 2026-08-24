@@ -52,6 +52,22 @@ copy secrets.local.example.js secrets.local.js
 - `KAKAO_JS_KEY` — [카카오 개발자센터](https://developers.kakao.com/)에서 앱 등록 후 JavaScript 키 발급. 플랫폼 설정에 로컬 서버 주소(예: `http://localhost:5501`)를 Web 플랫폼으로 등록해야 합니다. "내 주변" 위치 기반 검색에 사용됩니다.
 - `KCISA_SERVICE_KEY` — 문화공공데이터광장 오픈API 서비스키. 비워 두면 자동으로 `mockData.js`의 목업 데이터를 사용합니다. 요청 경로 등 나머지 설정은 `config.js`에서 관리합니다.
 
+### 구글 리뷰 API 키 (서버 전용, 별도 파일)
+
+구글 리뷰 조회(`api/reviews.js`)는 위 3개와 달리 **브라우저에 노출되면 안 되는 서버 전용 키**라 `secrets.local.js`가 아니라 환경 변수로 따로 관리합니다.
+
+```bash
+# macOS/Linux
+cp .env.local.example .env.local
+# Windows
+copy .env.local.example .env.local
+```
+
+`.env.local`을 열어 `GOOGLE_PLACES_API_KEY`를 채웁니다. 발급처는 Google Cloud Console → API 및 서비스 → 사용자 인증 정보이며, 해당 프로젝트에 **"Places API (New)"가 사용 설정**되어 있고 **결제(billing)가 켜져** 있어야 합니다.
+
+- 로컬 테스트: `/api`는 서버리스 함수라 일반 정적 서버(`python -m http.server` 등)로는 동작하지 않습니다. [Vercel CLI](https://vercel.com/docs/cli)를 설치해 `vercel dev`로 실행하면 `.env.local`을 자동으로 읽습니다.
+- 배포(Vercel): `.env.local`은 커밋되지 않으므로, Vercel 프로젝트 설정 → Environment Variables에 `GOOGLE_PLACES_API_KEY`를 동일한 이름으로 등록해야 배포본에서도 동작합니다.
+
 ## 프로젝트 구조
 
 ```
@@ -68,6 +84,10 @@ regions.json                 서울 시군구 목록
 config.js                    비-비밀 설정 + secrets.local.js 재수출
 secrets.local.example.js     API 키 템플릿 (커밋됨)
 secrets.local.js             실제 API 키 (.gitignore 대상, 커밋 안 됨)
+.env.local.example           구글 리뷰용 서버 전용 키 템플릿 (커밋됨)
+.env.local                   실제 GOOGLE_PLACES_API_KEY (.gitignore 대상, 커밋 안 됨)
+api/reviews.js                구글 리뷰 조회 서버리스 함수 (Places API New 프록시)
+googleReviews.js             구글 리뷰 조회 클라이언트 + localStorage 캐시
 theme.js                     Tailwind 디자인 토큰 + 네온 색상 CSS 변수 동기화
 styles.css                   네온 발광 유틸리티 등 공용 스타일
 components/ui/               화면 컴포넌트 (RegionSelect, CategoryChip, RestaurantCard, DetailModal, BottomNav, StatusView, AuthModal, AuthWidget)

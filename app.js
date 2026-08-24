@@ -5,7 +5,7 @@ import { getCurrentPosition, GeolocationError } from './locationApi.js';
 import { MOCK_RESTAURANTS } from './mockData.js';
 import { DISPLAY_CATEGORIES } from './categoryMap.js';
 import { DATA_AS_OF } from './config.js';
-import { getBookmarks, toggleBookmark, isBookmarked as isBookmarkedId } from './bookmarks.js';
+import { getBookmarks, toggleBookmark, isBookmarked as isBookmarkedId, loadBookmarks } from './bookmarks.js';
 
 import { createRegionSelect } from './components/ui/RegionSelect.js';
 import { renderCategoryChips, clearCategoryChips } from './components/ui/CategoryChip.js';
@@ -56,6 +56,7 @@ const el = {
   bottomNavRoot: document.getElementById('bottom-nav-root'),
   detailModalRoot: document.getElementById('detail-modal-root'),
   authWidgetRoot: document.getElementById('auth-widget-root'),
+  myBookmarksLink: document.getElementById('my-bookmarks-link'),
   authModalRoot: document.getElementById('auth-modal-root'),
   dataAsOf: document.getElementById('data-as-of'),
   tabPanels: document.querySelectorAll('[data-tab-panel]'),
@@ -474,12 +475,12 @@ function renderBookmarksView() {
 
 // 담기 버튼은 로그인 여부와 무관하게 항상 노출된다(둘러보기 중 자연스러운 로그인 유도).
 // 클릭 시점에 로그인 상태가 아니면 토글하지 않고 로그인 모달을 띄운다.
-function handleBookmarkToggle(restaurant) {
+async function handleBookmarkToggle(restaurant) {
   if (!state.currentUser) {
     authModal.open();
     return;
   }
-  toggleBookmark(state.currentUser.id, restaurant);
+  await toggleBookmark(state.currentUser.id, restaurant);
   renderCartResults();
   renderBookmarksView();
   if (state.mode === 'saved') {
@@ -555,9 +556,11 @@ async function init() {
   authWidget = createAuthWidget({ onLoginClick: () => authModal.open() });
   el.authWidgetRoot.appendChild(authWidget.root);
   // 로그인/로그아웃/새로고침 후 세션 복원 시 자동으로 헤더 상태 + 맛집 담기 가능 여부를 갱신한다.
-  onAuthStateChange((user) => {
+  onAuthStateChange(async (user) => {
     state.currentUser = user;
     authWidget.render(user);
+    el.myBookmarksLink.classList.toggle('hidden', !user);
+    await loadBookmarks(user?.id);
     if (!document.querySelector('[data-tab-panel="cart"]').classList.contains('hidden')) {
       refreshCartTab();
     }
@@ -567,7 +570,8 @@ async function init() {
   });
 
   bindEvents();
-  switchTab('menu');
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  switchTab(['menu', 'orders', 'cart', 'bio'].includes(requestedTab) ? requestedTab : 'menu');
 
   // URL에 시군구가 있으면(공유/새로고침 복원) 지역 선택 모드로, 없으면 기본값인 내 주변 모드로 시작.
   setMode(state.sigunguCode ? 'region' : 'nearby');

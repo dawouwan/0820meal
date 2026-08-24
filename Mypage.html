@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>맛집주머니 · 밥집 찾기</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+
+<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-[0_0_8px_rgba(0,240,255,0.2)]">
+  <div class="max-w-container-max mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16">
+    <span class="material-symbols-outlined text-primary">bookmark</span>
+    <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-widest uppercase chromatic-aberration">&gt; 맛집주머니</h1>
+    <div id="auth-widget-root" class="flex items-center"></div>
+  </div>
+</header>
+
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 pb-28">
+  <p id="mypage-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
+  <div id="mypage-area"></div>
+</main>
+
+<!-- 하단 4탭 네비 (BottomNav 컴포넌트가 마운트) -->
+<div id="bottom-nav-root"></div>
+
+<!-- 로그인/회원가입 모달 (AuthModal 컴포넌트가 마운트) -->
+<div id="auth-modal-root"></div>
+
+<script type="module" src="mypage.js"></script>
+</body>
+</html>

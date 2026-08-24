@@ -58,6 +58,8 @@ function mapPlace(place) {
     jibunAddress: place.address_name || '',
     tel: place.phone || '',
     distance: Number(place.distance) || null,
+    lat: place.y ? Number(place.y) : null,
+    lng: place.x ? Number(place.x) : null,
   };
 }
 
