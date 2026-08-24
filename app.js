@@ -157,7 +157,7 @@ async function loadNearbyResults() {
 
 function nearbyErrorHint(err) {
   if (err instanceof KakaoConfigMissingError) {
-    return 'secrets.local.js에 KAKAO_JS_KEY가 아직 설정되지 않았습니다.';
+    return '.env.local에 KAKAO_JS_KEY가 아직 설정되지 않았습니다.';
   }
   if (err instanceof GeolocationError) {
     if (err.code === 'denied') return '위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해 주세요.';

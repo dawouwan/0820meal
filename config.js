@@ -3,16 +3,21 @@
 //   openApiId=75493ae2-825d-49fb-893a-e2825d19fb9a (id=603) / API_CNV_063
 // PRD §4.5 / §11 기준으로 아직 미확정인 값은 TODO로 표시되어 있습니다.
 
-// 실제 서비스키/앱키는 이 파일이 아니라 secrets.local.js(.gitignore 대상)에 넣습니다.
-// 처음 클론했다면 secrets.local.example.js를 secrets.local.js로 복사한 뒤 값을 채워주세요.
-export { KCISA_SERVICE_KEY, KAKAO_JS_KEY, KAKAO_REST_API_KEY } from './secrets.local.js';
+// 실제 서비스키/앱키는 오직 .env.local(.gitignore 대상, 이 저장소에서 API 키를 두는 유일한 곳)에
+// 넣습니다. "npm run build"(scripts/generate-secrets.js)가 .env.local(로컬) 또는 Vercel
+// Environment Variables(배포)를 읽어 secrets.generated.js를 만듭니다 — 이 파일은 순수 빌드
+// 산출물이라 손으로 만들거나 채우지 않습니다(값을 바꿨다면 .env.local을 고치고 다시 빌드하세요).
+// KCISA_SERVICE_KEY는 여기 없습니다 — 브라우저 번들에 절대 넣지 않고 api/kcisa.js 서버리스
+// 함수 안에서만 process.env로 읽습니다(GOOGLE_PLACES_API_KEY/GEMINI_API_KEY와 동일한 취급).
+export { KAKAO_JS_KEY, KAKAO_REST_API_KEY } from './secrets.generated.js';
 
 // Supabase 프로젝트 URL + publishable(anon) key — 클라이언트에 노출되는 것이 정상인 공개 키라
-// secrets.local.js가 아니라 여기(커밋되는 파일)에 둔다.
+// .env.local이 아니라 여기(커밋되는 파일)에 둔다.
 export const SUPABASE_URL = 'https://lkbdhcblujmxveaikwci.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RFYX71rT6mMrztKPC25iZA_5-STPONd';
 
-export const KCISA_BASE_URL = 'https://api.kcisa.kr/openapi/service/rest';
+// KCISA_BASE_URL은 이제 api/kcisa.js(서버리스 함수)에만 있습니다 — 브라우저는 그 함수를
+// 상대경로(/api/kcisa)로만 호출하므로 클라이언트가 실제 KCISA 엔드포인트를 알 필요가 없습니다.
 
 // TODO(user): Swagger/공공데이터포털 문서에서 실제 {service}/{operation} 경로를 확인해 채워주세요.
 // 예: 'MetaDataService/getMetaData03' 같은 형태일 수 있습니다.

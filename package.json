@@ -2,6 +2,7 @@
   "name": "0820meal",
   "private": true,
   "scripts": {
-    "build": "node scripts/generate-secrets.js"
+    "build": "node scripts/generate-secrets.js",
+    "gen-secrets": "node scripts/generate-secrets.js"
   }
 }

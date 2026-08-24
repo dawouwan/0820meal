@@ -2,8 +2,6 @@
 // 실제 API 필드/파라미터가 바뀌어도 이 파일과 config.js만 손보면 되도록 격리했다.
 
 import {
-  KCISA_SERVICE_KEY,
-  KCISA_BASE_URL,
   KCISA_SERVICE_PATH,
   NUM_OF_ROWS,
   MAX_PAGES,
@@ -41,19 +39,20 @@ function writeCache(key, value) {
   }
 }
 
+// 실제 KCISA 호출(과 서비스키)은 api/kcisa.js 서버리스 함수 안에서만 일어난다 — 여기서는
+// 그 함수를 부를 상대경로 URL만 만든다. path만 있으면 되고, 서비스키가 서버에 없는 경우는
+// api/kcisa.js가 500으로 응답하며 아래 fetch 쪽에서 ApiFetchError로 처리된다.
 function buildPageUrl(pageNo, extraParams) {
-  if (!KCISA_SERVICE_KEY || !KCISA_SERVICE_PATH) {
-    throw new ConfigMissingError(
-      'KCISA_SERVICE_KEY 또는 KCISA_SERVICE_PATH가 config.js에 설정되지 않았습니다.'
-    );
+  if (!KCISA_SERVICE_PATH) {
+    throw new ConfigMissingError('KCISA_SERVICE_PATH가 config.js에 설정되지 않았습니다.');
   }
   const params = new URLSearchParams({
-    serviceKey: KCISA_SERVICE_KEY,
+    path: KCISA_SERVICE_PATH,
     numOfRows: String(NUM_OF_ROWS),
     pageNo: String(pageNo),
     ...extraParams,
   });
-  return `${KCISA_BASE_URL}/${KCISA_SERVICE_PATH}?${params.toString()}`;
+  return `/api/kcisa?${params.toString()}`;
 }
 
 // 공공데이터포털/KCISA에서 흔히 쓰이는 응답 envelope 몇 종을 순차 시도하고,

@@ -23,7 +23,7 @@ function loadKakaoSdk() {
 
   if (!KAKAO_JS_KEY) {
     return Promise.reject(
-      new KakaoConfigMissingError('secrets.local.js에 KAKAO_JS_KEY가 설정되지 않았습니다.')
+      new KakaoConfigMissingError('.env.local에 KAKAO_JS_KEY가 설정되지 않았습니다.')
     );
   }
 
