@@ -27,7 +27,7 @@ const state = {
 function renderEmptyState() {
   el.mypageArea.innerHTML = `<div class="col-span-full border border-dashed border-outline-variant p-10 text-center space-y-4">
     <p class="font-code-md text-code-md text-outline">아직 담은 맛집이 없어요. 검색하러 가볼까요?</p>
-    <a href="index.html" class="inline-block px-4 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors">&gt; 검색하러 가기</a>
+    <a href="main.html" class="inline-block px-4 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors">&gt; 검색하러 가기</a>
   </div>`;
 }
 
@@ -82,7 +82,7 @@ function init() {
 
   bottomNav = createBottomNav({
     onSelect: (target) => {
-      window.location.href = target === 'menu' ? 'index.html' : `index.html?tab=${target}`;
+      window.location.href = target === 'menu' ? 'main.html' : `main.html?tab=${target}`;
     },
   });
   el.bottomNavRoot.appendChild(bottomNav.root);

@@ -1,4 +1,4 @@
-// 결과 카드 — PRD F-04 / §6.1. status/rating/review/username/T-MINUS는 KCISA API가 주지 않는
+// 결과 카드 — PRD F-04 / §6.1. status/rating/review/username/T-MINUS는 API가 주지 않는
 // 장식용 필드라 id 기반 시드 난수로 고정 생성한다(실데이터 아님).
 
 import { escapeHtml } from './domUtils.js';

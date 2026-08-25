@@ -1,5 +1,5 @@
-// 실제 KCISA 키/필드 스펙이 확정되기 전에도 UI가 동작함을 보여주기 위한 예시 데이터.
-// api.js의 정규화 결과와 동일한 형태(name/category/roadAddress/tel/sidoCode/sigunguCode)로 맞춰뒀다.
+// API 조회가 실패했을 때 UI가 그래도 동작함을 보여주기 위한 예시 데이터.
+// nearbyApi.js의 정규화 결과와 동일한 형태(name/category/roadAddress/tel/sidoCode/sigunguCode)로 맞춰뒀다.
 // category는 이미 categoryMap.js의 표시 카테고리로 정규화된 값이다.
 
 export const MOCK_RESTAURANTS = [

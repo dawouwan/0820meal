@@ -1,13 +1,10 @@
 import { onAuthStateChange } from './auth.js';
-import { getRestaurants, ConfigMissingError } from './api.js';
 import { getNearbyRestaurants } from './nearbyApi.js';
 import { getCurrentPosition, GeolocationError } from './locationApi.js';
 import { MOCK_RESTAURANTS } from './mockData.js';
 import { DISPLAY_CATEGORIES } from './categoryMap.js';
-import { DATA_AS_OF } from './config.js';
 import { getBookmarks, toggleBookmark, isBookmarked as isBookmarkedId, loadBookmarks } from './bookmarks.js';
 
-import { createRegionSelect } from './components/ui/RegionSelect.js';
 import { renderCategoryChips, clearCategoryChips } from './components/ui/CategoryChip.js';
 import { renderRestaurantCards } from './components/ui/RestaurantCard.js';
 import { createDetailModal } from './components/ui/DetailModal.js';
@@ -18,18 +15,12 @@ import { renderLoadingState, renderMessageState, renderErrorState, renderLoginRe
 
 const PAGE_SIZE = 20;
 
-// 지역 필터는 서울로 고정 (시도 선택 UI 없음). regions.json 기준 sidoCode.
-const SEOUL_SIDO_CODE = '11';
-
 const state = {
-  regions: [],
-  mode: 'nearby', // 'nearby' | 'region' — MENU 탭 검색 모드, 기본은 위치 기반 "내 주변"
+  mode: 'nearby', // 'nearby' | 'saved' — MENU 탭 검색 모드, 기본은 위치 기반 "내 주변"
   nearbyCoords: null,
-  sidoCode: SEOUL_SIDO_CODE,
-  sigunguCode: '',
   category: '', // '' = 전체
   page: 1,
-  allResults: [], // 현재 선택된 시군구/내 주변의 정규화된 전체 목록
+  allResults: [], // 내 주변 조회 결과(정규화된 전체 목록)
   usingMock: false,
   loading: false,
   // CART 탭 — 키워드/카테고리 검색 (F-신규). 별도 API 호출 없이 state.allResults + MOCK_RESTAURANTS만 사용.
@@ -43,12 +34,10 @@ const state = {
 
 const el = {
   modeNearbyBtn: document.getElementById('mode-nearby-btn'),
-  modeRegionBtn: document.getElementById('mode-region-btn'),
   modeSavedBtn: document.getElementById('mode-saved-btn'),
   nearbyStatusRoot: document.getElementById('nearby-status-root'),
   nearbyStatusText: document.getElementById('nearby-status-text'),
   nearbyRetryBtn: document.getElementById('nearby-retry-btn'),
-  regionSelectRoot: document.getElementById('region-select-root'),
   categoryChips: document.getElementById('category-chips'),
   resultsInfo: document.getElementById('results-info'),
   resultsArea: document.getElementById('results-area'),
@@ -58,7 +47,6 @@ const el = {
   authWidgetRoot: document.getElementById('auth-widget-root'),
   myBookmarksLink: document.getElementById('my-bookmarks-link'),
   authModalRoot: document.getElementById('auth-modal-root'),
-  dataAsOf: document.getElementById('data-as-of'),
   tabPanels: document.querySelectorAll('[data-tab-panel]'),
   // CART 탭
   cartSearchInput: document.getElementById('cart-search-input'),
@@ -70,7 +58,6 @@ const el = {
 };
 
 // components/ui 인스턴스 — init()에서 마운트
-let regionSelect;
 let detailModal;
 let bottomNav;
 let authModal;
@@ -80,20 +67,17 @@ let authWidget;
 
 function parseUrlState() {
   const params = new URLSearchParams(window.location.search);
-  // sidoCode는 항상 서울로 고정이라 URL에 담지 않는다.
-  state.sigunguCode = params.get('sigungu') || '';
   state.category = params.get('cat') || '';
 }
 
 function syncUrl() {
   const params = new URLSearchParams();
-  if (state.sigunguCode) params.set('sigungu', state.sigunguCode);
   if (state.category) params.set('cat', state.category);
   const query = params.toString();
   history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
 }
 
-// ---------- 검색 모드 토글 (내 주변 / 지역 선택) ----------
+// ---------- 검색 모드 토글 (내 주변 / 담은 맛집) ----------
 
 function setMode(mode) {
   state.mode = mode;
@@ -104,28 +88,17 @@ function setMode(mode) {
   el.modeNearbyBtn.classList.toggle('border-outline-variant', mode !== 'nearby');
   el.modeNearbyBtn.classList.toggle('text-outline', mode !== 'nearby');
 
-  el.modeRegionBtn.classList.toggle('border-primary', mode === 'region');
-  el.modeRegionBtn.classList.toggle('text-primary', mode === 'region');
-  el.modeRegionBtn.classList.toggle('border-outline-variant', mode !== 'region');
-  el.modeRegionBtn.classList.toggle('text-outline', mode !== 'region');
-
   el.modeSavedBtn.classList.toggle('border-primary', mode === 'saved');
   el.modeSavedBtn.classList.toggle('text-primary', mode === 'saved');
   el.modeSavedBtn.classList.toggle('border-outline-variant', mode !== 'saved');
   el.modeSavedBtn.classList.toggle('text-outline', mode !== 'saved');
 
   el.nearbyStatusRoot.classList.toggle('hidden', mode !== 'nearby');
-  el.regionSelectRoot.classList.toggle('hidden', mode !== 'region');
 
   if (mode === 'nearby') {
     loadNearbyResults();
-  } else if (mode === 'saved') {
-    renderSavedMenuView();
-  } else if (state.sigunguCode) {
-    loadResults();
   } else {
-    state.allResults = [];
-    renderResultsArea();
+    renderSavedMenuView();
   }
 }
 
@@ -175,49 +148,10 @@ function renderNearbyErrorStateView(err) {
   });
 }
 
-// ---------- 지역 셀렉트 이벤트 ----------
-
-function onSigunguChange(sigunguCode) {
-  state.sigunguCode = sigunguCode;
-  state.category = '';
-  syncUrl();
-  if (state.sigunguCode) {
-    loadResults();
-  } else {
-    state.allResults = [];
-    renderResultsArea();
-  }
-}
-
 // ---------- 데이터 로드 ----------
 
-async function loadResults() {
-  const sido = regionSelect.sido;
-  const sigunguName = regionSelect.findSigunguName(state.sigunguCode);
-  if (!sido || !sigunguName) return;
-
-  state.loading = true;
-  state.usingMock = false;
-  renderResultsArea();
-
-  try {
-    const { data } = await getRestaurants(state.sidoCode, state.sigunguCode, sido.sidoName, sigunguName);
-    state.allResults = data;
-    state.loading = false;
-    state.page = 1;
-    renderAll();
-  } catch (err) {
-    state.loading = false;
-    state.allResults = [];
-    const isConfigMissing = err instanceof ConfigMissingError;
-    renderErrorStateView(isConfigMissing);
-  }
-}
-
 function loadMockResults() {
-  state.allResults = state.mode === 'nearby'
-    ? MOCK_RESTAURANTS
-    : MOCK_RESTAURANTS.filter((r) => r.sidoCode === state.sidoCode && r.sigunguCode === state.sigunguCode);
+  state.allResults = MOCK_RESTAURANTS;
   state.usingMock = true;
   state.loading = false;
   state.page = 1;
@@ -261,26 +195,7 @@ function renderResultsArea() {
     renderLoadingState(el.resultsArea);
     el.loadMoreBtn.classList.add('hidden');
     clearCategoryChips(el.categoryChips);
-    return;
   }
-
-  if (state.mode === 'region' && !state.sigunguCode) {
-    el.resultsInfo.textContent = '> 시군구를 선택해 주세요';
-    renderMessageState(el.resultsArea, '시군구를 선택하면 결과가 표시됩니다.');
-    el.loadMoreBtn.classList.add('hidden');
-    clearCategoryChips(el.categoryChips);
-  }
-}
-
-function renderErrorStateView(isConfigMissing) {
-  clearCategoryChips(el.categoryChips);
-  el.loadMoreBtn.classList.add('hidden');
-  el.resultsInfo.textContent = '> ERROR';
-  renderErrorState(el.resultsArea, {
-    isConfigMissing,
-    onRetry: loadResults,
-    onUseMock: loadMockResults,
-  });
 }
 
 function renderListView() {
@@ -290,10 +205,7 @@ function renderListView() {
 
   const catLabel = state.category || '전체';
   const mockNote = state.usingMock ? ' (예시 데이터)' : '';
-  const locationLabel = state.mode === 'nearby'
-    ? '내 주변'
-    : `${regionSelect.sido?.sidoName || ''} ${regionSelect.findSigunguName(state.sigunguCode)}`;
-  el.resultsInfo.textContent = `// ${locationLabel} · ${catLabel} · ${filtered.length} RESULTS${mockNote}`;
+  el.resultsInfo.textContent = `// 내 주변 · ${catLabel} · ${filtered.length} RESULTS${mockNote}`;
 
   if (!filtered.length) {
     renderMessageState(el.resultsArea, '이 조건에 등록된 음식점이 없어요.');
@@ -375,9 +287,8 @@ function renderSavedMenuView() {
 }
 
 // ---------- CART 탭: 키워드/카테고리 검색 + 담기 (F-신규) ----------
-// 데이터 소스: 별도 API 호출 없이 (1) MENU 탭에서 이미 로드된 state.allResults(현재 선택 구)와
+// 데이터 소스: 별도 API 호출 없이 (1) MENU 탭에서 이미 로드된 state.allResults(내 주변 조회 결과)와
 // (2) mockData.js의 MOCK_RESTAURANTS(다른 지역 포함 예시 데이터)를 합쳐 클라이언트에서만 필터링한다.
-// KCISA 오픈API 일일 호출 한도(1,000건) 절약을 위해 25개 구를 순회 호출하는 방식은 쓰지 않는다.
 
 function getCartSearchPool() {
   const pool = [];
@@ -482,7 +393,7 @@ async function handleBookmarkToggle(restaurant) {
   renderBookmarksView();
   if (state.mode === 'saved') {
     renderSavedMenuView();
-  } else if (state.mode === 'nearby' || state.sigunguCode) {
+  } else if (state.mode === 'nearby') {
     renderListView();
   }
 }
@@ -514,7 +425,6 @@ function bindEvents() {
   });
 
   el.modeNearbyBtn.addEventListener('click', () => setMode('nearby'));
-  el.modeRegionBtn.addEventListener('click', () => setMode('region'));
   el.modeSavedBtn.addEventListener('click', () => setMode('saved'));
   el.nearbyRetryBtn.addEventListener('click', loadNearbyResults);
 
@@ -527,19 +437,7 @@ function bindEvents() {
 // ---------- 초기화 ----------
 
 async function init() {
-  el.dataAsOf.textContent = DATA_AS_OF ? `정보 기준일: ${DATA_AS_OF}` : '정보 기준일: 미확인';
-
-  const res = await fetch('./regions.json');
-  state.regions = await res.json();
-
   parseUrlState();
-
-  regionSelect = createRegionSelect({
-    regions: state.regions,
-    onSigunguChange,
-  });
-  el.regionSelectRoot.appendChild(regionSelect.root);
-  regionSelect.setValues(state.sigunguCode);
 
   detailModal = createDetailModal();
   el.detailModalRoot.appendChild(detailModal.root);
@@ -570,9 +468,7 @@ async function init() {
   const requestedTab = new URLSearchParams(window.location.search).get('tab');
   switchTab(['menu', 'orders', 'cart', 'bio'].includes(requestedTab) ? requestedTab : 'menu');
 
-  // URL에 시군구가 있으면(공유/새로고침 복원) 지역 선택 모드로, 없으면 기본값인 내 주변 모드로 시작.
-  setMode(state.sigunguCode ? 'region' : 'nearby');
-  if (state.sigunguCode && state.category) renderCategoryChipsView();
+  setMode('nearby');
 }
 
 init();

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>밥집 찾기</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+
+<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-[0_0_8px_rgba(0,240,255,0.2)]">
+  <div class="max-w-container-max mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16">
+    <span class="material-symbols-outlined text-primary">terminal</span>
+    <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-widest uppercase chromatic-aberration">&gt; FOOD_TERM_v1.0</h1>
+    <div class="flex items-center">
+      <a id="my-bookmarks-link" href="Mypage.html"
+        class="hidden items-center mr-3 px-3 py-1.5 border border-secondary text-secondary font-label-sm text-label-sm uppercase tracking-widest hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">bookmark</span>맛집주머니
+      </a>
+      <div id="auth-widget-root" class="flex items-center"></div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 pb-28">
+
+  <!-- MENU 탭: 실제 PRD 기능(필터 → 목록 → 상세) -->
+  <section data-tab-panel="menu">
+
+    <!-- 검색창: PRD v1 범위 밖 — 시각적으로만 유지, 비활성 -->
+    <div class="mb-6 relative">
+      <div class="relative flex items-center bg-surface-container-lowest border-2 border-outline-variant px-4 py-3 opacity-60">
+        <span class="material-symbols-outlined text-outline mr-2">search</span>
+        <input class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-code-md placeholder-outline outline-none" placeholder="&gt; QUERY_RESTAURANT... (v2 예정)" type="text" disabled>
+      </div>
+    </div>
+
+    <!-- 검색 모드 토글: 내 주변(위치 기반, 기본) / 담은 맛집 -->
+    <div class="mb-6 flex gap-2">
+      <button id="mode-nearby-btn" type="button" data-mode="nearby"
+        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">near_me</span>&gt; 내 주변
+      </button>
+      <button id="mode-saved-btn" type="button" data-mode="saved"
+        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">bookmark</span>&gt; 담은 맛집
+      </button>
+    </div>
+
+    <!-- 내 주변 모드: 위치 상태 안내 + 재시도 -->
+    <div id="nearby-status-root" class="mb-6 hidden flex items-center justify-between gap-4 border border-outline-variant px-4 py-3">
+      <p id="nearby-status-text" class="font-code-md text-code-md text-outline">// 내 위치 확인 중...</p>
+      <button id="nearby-retry-btn" type="button" class="px-3 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high flex-shrink-0">&gt; 다시 찾기</button>
+    </div>
+
+    <!-- 카테고리 칩 -->
+    <div id="category-chips" class="mb-6 -mx-margin-mobile px-margin-mobile overflow-x-auto hide-scrollbar flex space-x-2 pb-2"></div>
+
+    <div class="border-b border-outline-variant mb-6"></div>
+
+    <p id="results-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
+
+    <div id="results-area"></div>
+
+    <div class="text-center mt-8">
+      <button id="load-more-btn" class="hidden px-6 py-3 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors">&gt; LOAD_MORE</button>
+    </div>
+  </section>
+
+  <!-- ORDERS/CART/BIO: 실기능 없는 플레이스홀더 -->
+  <section data-tab-panel="orders" class="hidden">
+    <div class="border border-dashed border-outline-variant p-16 text-center">
+      <span class="material-symbols-outlined text-outline text-[40px] mb-4 block">receipt_long</span>
+      <p class="font-code-md text-code-md text-outline">&gt; ORDERS_MODULE: 준비 중입니다.</p>
+    </div>
+  </section>
+  <section data-tab-panel="cart" class="hidden">
+
+    <!-- 키워드 검색창 -->
+    <div class="mb-6 relative">
+      <div class="relative flex items-center bg-surface-container-lowest border-2 border-outline-variant px-4 py-3 focus-within:border-primary transition-colors">
+        <span class="material-symbols-outlined text-outline mr-2">search</span>
+        <input id="cart-search-input" class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-code-md placeholder-outline outline-none" placeholder="&gt; QUERY_RESTAURANT... (이름/주소)" type="text">
+      </div>
+    </div>
+
+    <!-- 카테고리 칩 -->
+    <div id="cart-category-chips" class="mb-6 -mx-margin-mobile px-margin-mobile overflow-x-auto hide-scrollbar flex space-x-2 pb-2"></div>
+
+    <div class="border-b border-outline-variant mb-6"></div>
+
+    <p id="cart-results-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
+    <div id="cart-results-area"></div>
+
+    <div class="border-b border-outline-variant my-10"></div>
+
+    <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase tracking-widest mb-4">&gt; SAVED_LIST</h2>
+    <p id="bookmarks-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
+    <div id="bookmarks-area"></div>
+  </section>
+  <section data-tab-panel="bio" class="hidden">
+    <div class="border border-dashed border-outline-variant p-16 text-center">
+      <span class="material-symbols-outlined text-outline text-[40px] mb-4 block">fingerprint</span>
+      <p class="font-code-md text-code-md text-outline">&gt; BIO_MODULE: 준비 중입니다.</p>
+    </div>
+  </section>
+</main>
+
+<!-- 하단 4탭 네비 (BottomNav 컴포넌트가 마운트) -->
+<div id="bottom-nav-root"></div>
+
+<!-- 상세 모달 (DetailModal 컴포넌트가 마운트) — PRD §6.2 -->
+<div id="detail-modal-root"></div>
+
+<!-- 로그인/회원가입 모달 (AuthModal 컴포넌트가 마운트) -->
+<div id="auth-modal-root"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

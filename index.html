@@ -3,134 +3,302 @@
 <head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>밥집 찾기</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="theme.js"></script>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+<title>와우 | 밥집 찾기</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00f0ff;
+    --magenta: #ff2ec4;
+    --cyan-rgb: 0, 240, 255;
+    --magenta-rgb: 255, 46, 196;
+    --ink: #f5faff;
+    --bg-1: #111a37;
+    --bg-2: #08112e;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    background: var(--bg-2);
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 40px 20px;
+    background:
+      radial-gradient(120% 90% at 50% 38%, rgba(var(--cyan-rgb), 0.07), transparent 60%),
+      linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    overflow: hidden;
+  }
 
-<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-[0_0_8px_rgba(0,240,255,0.2)]">
-  <div class="max-w-container-max mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16">
-    <span class="material-symbols-outlined text-primary">terminal</span>
-    <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-widest uppercase chromatic-aberration">&gt; FOOD_TERM_v1.0</h1>
-    <div class="flex items-center">
-      <a id="my-bookmarks-link" href="Mypage.html"
-        class="hidden items-center mr-3 px-3 py-1.5 border border-secondary text-secondary font-label-sm text-label-sm uppercase tracking-widest hover:bg-surface-container-high transition-colors">
-        <span class="material-symbols-outlined text-sm align-middle mr-1">bookmark</span>맛집주머니
-      </a>
-      <div id="auth-widget-root" class="flex items-center"></div>
+  .logo-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    row-gap: 0;
+    column-gap: 6px;
+    justify-content: center;
+    justify-items: end;
+    align-items: center;
+    line-height: 0.8;
+  }
+  .logo-grid.fuse {
+    row-gap: -26px;
+  }
+  .ch {
+    font-family: 'Black Han Sans', 'Malgun Gothic', sans-serif;
+    font-size: clamp(84px, 22vw, 168px);
+    color: transparent;
+    -webkit-text-stroke: 3px var(--c);
+    letter-spacing: 0;
+    user-select: none;
+  }
+  .ch.cyan {
+    --c: var(--cyan);
+    text-shadow:
+      0 0 2px rgba(255,255,255,0.85),
+      0 0 10px rgba(var(--cyan-rgb), 0.85),
+      0 0 22px rgba(var(--cyan-rgb), 0.55),
+      0 0 46px rgba(var(--cyan-rgb), 0.3),
+      0 0 90px rgba(var(--cyan-rgb), 0.16);
+    animation: neon-flicker 5s ease-in-out infinite;
+  }
+  .ch.magenta {
+    --c: var(--magenta);
+    text-shadow:
+      0 0 2px rgba(255,255,255,0.85),
+      0 0 10px rgba(var(--magenta-rgb), 0.85),
+      0 0 22px rgba(var(--magenta-rgb), 0.55),
+      0 0 46px rgba(var(--magenta-rgb), 0.3),
+      0 0 90px rgba(var(--magenta-rgb), 0.16);
+    animation: neon-flicker 5s ease-in-out infinite;
+    animation-delay: -2.4s;
+  }
+  @keyframes neon-flicker {
+    0%, 100% { filter: brightness(1); }
+    3% { filter: brightness(0.85); }
+    6% { filter: brightness(1); }
+    7% { filter: brightness(0.9); }
+    8% { filter: brightness(1); }
+    50% { filter: brightness(1.05); }
+    52% { filter: brightness(0.95); }
+    54% { filter: brightness(1); }
+  }
+
+  .tagline {
+    color: rgba(245, 250, 255, 0.6);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+    white-space: nowrap;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .auth-tabs {
+    display: flex;
+    border: 1px solid rgba(var(--cyan-rgb), 0.4);
+  }
+  .auth-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(245, 250, 255, 0.55);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 0;
+    cursor: pointer;
+  }
+  .auth-tab + .auth-tab {
+    border-left: 1px solid rgba(var(--cyan-rgb), 0.4);
+  }
+  .auth-tab[aria-pressed="true"] {
+    background: rgba(var(--cyan-rgb), 0.14);
+    color: var(--ink);
+  }
+
+  .auth-field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .auth-field input {
+    width: 100%;
+    background: rgba(245, 250, 255, 0.04);
+    border: 1px solid rgba(var(--cyan-rgb), 0.35);
+    color: var(--ink);
+    padding: 12px 14px;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 14px;
+    border-radius: 2px;
+  }
+  .auth-field input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 10px rgba(var(--cyan-rgb), 0.35);
+  }
+
+  .auth-error {
+    color: var(--magenta);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+
+  .auth-submit {
+    appearance: none;
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--cyan);
+    padding: 14px 0;
+    width: 100%;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(var(--cyan-rgb), 0.35);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+  }
+  .auth-submit:hover {
+    background: rgba(var(--cyan-rgb), 0.12);
+    box-shadow: 0 0 22px rgba(var(--cyan-rgb), 0.6);
+  }
+  .auth-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .guest-link {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: rgba(245, 250, 255, 0.4);
+    text-decoration: none;
+  }
+  .guest-link:hover {
+    color: var(--cyan);
+  }
+</style>
+</head>
+<body>
+
+  <div class="logo-wrap">
+    <div class="logo-grid fuse">
+      <span class="ch cyan">W</span><span class="ch magenta">와</span>
+      <span class="ch cyan">우</span><span class="ch magenta">W</span>
     </div>
   </div>
-</header>
 
-<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 pb-28">
+  <p class="tagline">내 주변 밥집을 찾아보세요</p>
 
-  <!-- MENU 탭: 실제 PRD 기능(필터 → 목록 → 상세) -->
-  <section data-tab-panel="menu">
-
-    <!-- 검색창: PRD v1 범위 밖 — 시각적으로만 유지, 비활성 -->
-    <div class="mb-6 relative">
-      <div class="relative flex items-center bg-surface-container-lowest border-2 border-outline-variant px-4 py-3 opacity-60">
-        <span class="material-symbols-outlined text-outline mr-2">search</span>
-        <input class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-code-md placeholder-outline outline-none" placeholder="&gt; QUERY_RESTAURANT... (v2 예정)" type="text" disabled>
-      </div>
+  <form id="auth-form" class="auth-box">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab" data-mode="login" aria-pressed="true">로그인</button>
+      <button type="button" class="auth-tab" data-mode="register" aria-pressed="false">회원가입</button>
     </div>
 
-    <!-- 검색 모드 토글: 내 주변(위치 기반, 기본) / 지역 선택 -->
-    <div class="mb-6 flex gap-2">
-      <button id="mode-nearby-btn" type="button" data-mode="nearby"
-        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
-        <span class="material-symbols-outlined text-sm align-middle mr-1">near_me</span>&gt; 내 주변
-      </button>
-      <button id="mode-region-btn" type="button" data-mode="region"
-        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
-        <span class="material-symbols-outlined text-sm align-middle mr-1">map</span>&gt; 지역 선택
-      </button>
-      <button id="mode-saved-btn" type="button" data-mode="saved"
-        class="px-4 py-2 border-2 border-outline-variant text-outline font-label-sm text-label-sm uppercase transition-all hover:text-primary">
-        <span class="material-symbols-outlined text-sm align-middle mr-1">bookmark</span>&gt; 담은 맛집
-      </button>
+    <div class="auth-field">
+      <label for="auth-email">이메일</label>
+      <input id="auth-email" type="email" required autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label for="auth-password">비밀번호</label>
+      <input id="auth-password" type="password" required autocomplete="current-password" placeholder="비밀번호">
     </div>
 
-    <!-- 내 주변 모드: 위치 상태 안내 + 재시도 -->
-    <div id="nearby-status-root" class="mb-6 hidden flex items-center justify-between gap-4 border border-outline-variant px-4 py-3">
-      <p id="nearby-status-text" class="font-code-md text-code-md text-outline">// 내 위치 확인 중...</p>
-      <button id="nearby-retry-btn" type="button" class="px-3 py-2 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high flex-shrink-0">&gt; 다시 찾기</button>
-    </div>
+    <p id="auth-error" class="auth-error" hidden></p>
 
-    <!-- 시군구 셀렉트 (RegionSelect 컴포넌트가 마운트) — 지역은 서울로 고정, 시도 선택 UI 없음 -->
-    <div id="region-select-root" class="hidden"></div>
+    <button id="auth-submit" type="submit" class="auth-submit">&gt; 로그인</button>
+  </form>
 
-    <!-- 카테고리 칩 -->
-    <div id="category-chips" class="mb-6 -mx-margin-mobile px-margin-mobile overflow-x-auto hide-scrollbar flex space-x-2 pb-2"></div>
+  <a class="guest-link" href="main.html">로그인 없이 둘러보기 &gt;</a>
 
-    <div class="border-b border-outline-variant mb-6"></div>
+  <script type="module">
+    import { signIn, signUp } from './auth.js';
 
-    <p id="results-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
+    const form = document.getElementById('auth-form');
+    const tabs = form.querySelectorAll('.auth-tab');
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    const errorEl = document.getElementById('auth-error');
+    const submitBtn = document.getElementById('auth-submit');
 
-    <div id="results-area"></div>
+    let mode = 'login';
 
-    <div class="text-center mt-8">
-      <button id="load-more-btn" class="hidden px-6 py-3 border-2 border-primary text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors">&gt; LOAD_MORE</button>
-    </div>
+    function applyMode() {
+      const isRegister = mode === 'register';
+      tabs.forEach((tab) => tab.setAttribute('aria-pressed', String(tab.dataset.mode === mode)));
+      passwordInput.autocomplete = isRegister ? 'new-password' : 'current-password';
+      submitBtn.textContent = isRegister ? '> 회원가입' : '> 로그인';
+      errorEl.hidden = true;
+    }
 
-    <footer class="mt-12 pt-6 border-t border-outline-variant text-center">
-      <p class="font-code-md text-code-md text-outline">// DATA SOURCE: 문화공공데이터광장 · 한국문화정보원 (지역별 음식점 소비기반 트렌드)</p>
-      <p id="data-as-of" class="font-code-md text-code-md text-outline mt-1">정보 기준일: 미확인</p>
-    </footer>
-  </section>
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      mode = tab.dataset.mode;
+      applyMode();
+    }));
 
-  <!-- ORDERS/CART/BIO: 실기능 없는 플레이스홀더 -->
-  <section data-tab-panel="orders" class="hidden">
-    <div class="border border-dashed border-outline-variant p-16 text-center">
-      <span class="material-symbols-outlined text-outline text-[40px] mb-4 block">receipt_long</span>
-      <p class="font-code-md text-code-md text-outline">&gt; ORDERS_MODULE: 준비 중입니다.</p>
-    </div>
-  </section>
-  <section data-tab-panel="cart" class="hidden">
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      submitBtn.disabled = true;
 
-    <!-- 키워드 검색창 -->
-    <div class="mb-6 relative">
-      <div class="relative flex items-center bg-surface-container-lowest border-2 border-outline-variant px-4 py-3 focus-within:border-primary transition-colors">
-        <span class="material-symbols-outlined text-outline mr-2">search</span>
-        <input id="cart-search-input" class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-code-md placeholder-outline outline-none" placeholder="&gt; QUERY_RESTAURANT... (이름/주소)" type="text">
-      </div>
-    </div>
+      const result = mode === 'register'
+        ? await signUp(emailInput.value, passwordInput.value)
+        : await signIn(emailInput.value, passwordInput.value);
 
-    <!-- 카테고리 칩 -->
-    <div id="cart-category-chips" class="mb-6 -mx-margin-mobile px-margin-mobile overflow-x-auto hide-scrollbar flex space-x-2 pb-2"></div>
+      if (!result.ok) {
+        errorEl.textContent = result.error;
+        errorEl.hidden = false;
+        submitBtn.disabled = false;
+        return;
+      }
 
-    <div class="border-b border-outline-variant mb-6"></div>
+      window.location.href = 'main.html';
+    });
 
-    <p id="cart-results-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
-    <div id="cart-results-area"></div>
+    // 태그라인을 로그인/회원가입 버튼 줄과 끝과 끝이 맞도록 폰트 크기를 스케일.
+    function fitTagline() {
+      const tagline = document.querySelector('.tagline');
+      const target = document.querySelector('.auth-tabs');
+      if (!tagline || !target) return;
+      const targetWidth = target.getBoundingClientRect().width;
+      if (!targetWidth) return;
+      tagline.style.fontSize = '18px';
+      const currentWidth = tagline.getBoundingClientRect().width;
+      if (!currentWidth) return;
+      const newSize = 18 * (targetWidth / currentWidth);
+      tagline.style.fontSize = `${newSize}px`;
+    }
+    window.addEventListener('load', fitTagline);
+    window.addEventListener('resize', fitTagline);
+  </script>
 
-    <div class="border-b border-outline-variant my-10"></div>
-
-    <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase tracking-widest mb-4">&gt; SAVED_LIST</h2>
-    <p id="bookmarks-info" class="font-code-md text-code-md text-outline mb-4 uppercase"></p>
-    <div id="bookmarks-area"></div>
-  </section>
-  <section data-tab-panel="bio" class="hidden">
-    <div class="border border-dashed border-outline-variant p-16 text-center">
-      <span class="material-symbols-outlined text-outline text-[40px] mb-4 block">fingerprint</span>
-      <p class="font-code-md text-code-md text-outline">&gt; BIO_MODULE: 준비 중입니다.</p>
-    </div>
-  </section>
-</main>
-
-<!-- 하단 4탭 네비 (BottomNav 컴포넌트가 마운트) -->
-<div id="bottom-nav-root"></div>
-
-<!-- 상세 모달 (DetailModal 컴포넌트가 마운트) — PRD §6.2 -->
-<div id="detail-modal-root"></div>
-
-<!-- 로그인/회원가입 모달 (AuthModal 컴포넌트가 마운트) -->
-<div id="auth-modal-root"></div>
-
-<script type="module" src="app.js"></script>
 </body>
 </html>
